@@ -45,6 +45,7 @@ class MHZ {
   // void calibrateSpan(int range); //only for professional use... see implementation and Datasheet.
 
   int32_t readCO2UART();
+  int32_t readCO2PWM(int timeout);
   int32_t readCO2PWM();
   int getLastTemperature();
   void setTemperatureOffset(uint8_t offset);

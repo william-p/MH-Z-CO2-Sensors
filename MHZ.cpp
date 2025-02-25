@@ -309,7 +309,7 @@ byte MHZ::getCheckSum(byte* packet) {
   return checksum;
 }
 
-int32_t MHZ::readCO2PWM() {
+int32_t MHZ::readCO2PWM(int timeout) {
   if (_pwmpin == UNUSED_PIN) {
     if (debug) _console->println(F("-- pwm is not configured "));
     return STATUS_PWM_NOT_CONFIGURED;
@@ -319,12 +319,12 @@ int32_t MHZ::readCO2PWM() {
   unsigned long th, tl, ppm_pwm = 0, start = millis();
   do {
     if (debug) _console->print(".");
-    th = pulseIn(_pwmpin, HIGH, 1004000) / 1000;
+    th = pulseIn(_pwmpin, HIGH, (timeout * 1000) / 3) / 1000;
     tl = 1004 - th;
     ppm_pwm = _range * (th - 2) / (th + tl - 4);
-    if (getTimeDiff(start, millis()) > 90L * 1000) {  // Timeout after 90 seconds
+    if (getTimeDiff(start, millis()) >= timeout) {
       _console->print("Unable to read value. Timeout.");
-      break;
+      return 0;
     }
   } while (th == 0);
   if (debug) {
@@ -332,6 +332,10 @@ int32_t MHZ::readCO2PWM() {
     _console->println(ppm_pwm);
   }
   return ppm_pwm;
+}
+
+int32_t MHZ::readCO2PWM() {
+  return readCO2PWM(90L * 1000);  // Timeout after 90 seconds
 }
 
 void MHZ::setAutoCalibrate(boolean b)  // only available for MHZ-19B with firmware < 1.6, MHZ-19C and MHZ 14a
